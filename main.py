@@ -25,7 +25,14 @@ def main(args):
 
     with paramiko.SSHClient() as ssh_client:
         ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh_client.connect(hostname=args.ip, port=args.port, username=args.userName, password=args.password)
+        #updated the connection call to be an if elif for the different options of user name password, user name and supplied key file and a default of username and default public key 
+        if args.password != '':
+            ssh_client.connect(hostname=args.ip, port=args.port, username=args.userName, password=args.password)
+        elif args.keyFile != '':
+            ssh_client.connect(hostname=args.ip, port=args.port, username=args.userName, pkey=args.keyFile)
+        else:
+            ssh_client.connect(hostname=args.ip, port=args.port, username=args.userName) #use defalue pblic key auth ~/.ssh
+
 
         for command in commands:
             res = command.run_ssh(ssh_client)
@@ -56,6 +63,7 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--port', help='The tested Mikrotik SSH port', required=True)
     parser.add_argument('-u', '--userName', help='User name with admin Permissions', required=True)
     parser.add_argument('-ps', '--password', help='The password of the given user name', default='')
+    parser.add_argument('-kf', '--keyFile', help='The path to the public key file', default='') #Added argument for passing information on key file 
     parser.add_argument('-J', help='Print the results as json format', action='store_true')
     args = parser.parse_args()
 
